@@ -24,6 +24,7 @@ public class Catalog {
      */
     public Catalog() {
         // some code goes here
+        // This is just a test on catalog
     }
 
     /**
