@@ -20,13 +20,13 @@ public class Tuple implements Serializable {
     /**
      * Create a new tuple with the specified schema (type).
      *
-     * @param td
+     * @param td 
      *            the schema of this tuple. It must be a valid TupleDesc
      *            instance with at least one field.
      */
     public Tuple(TupleDesc td) {
         this.td = td;
-        this.fields = new Field[td.numFields()];
+        this.fields = new Field[td.numFields()]; 
     }
 
     /**
