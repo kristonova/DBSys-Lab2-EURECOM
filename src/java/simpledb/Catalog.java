@@ -17,14 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Threadsafe
  */
 public class Catalog {
-
+    public HashMap<Integer,Table> map;
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
         // some code goes here
-        // This is just a test on catalog
+        this.map = new HashMap<>();
     }
 
     /**
@@ -36,8 +36,14 @@ public class Catalog {
      * conflict exists, use the last table to be added as the table for a given name.
      * @param pkeyField the name of the primary key field
      */
+    // (!) The conflicts thing is missing
+    // (?) if DBFile is an implementation, is it ok to put it here as a parameter?
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
+        if (name==null) throw new IllegalArgumentException("name cannot be null");
+        int id = file.getId(); // (?) Doesnt have this method code?
+        Table table= new Table(file,name,pkeyField); // (?) Do we really store a whole file here?
+        map.put(id,table);
     }
 
     public void addTable(DbFile file, String name) {
