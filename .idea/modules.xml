@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/DBSys-Lab2-EURECOM.iml" filepath="$PROJECT_DIR$/DBSys-Lab2-EURECOM.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/DBSys-Lab2-EURECOM2.iml" filepath="$PROJECT_DIR$/src/DBSys-Lab2-EURECOM2.iml" />
+    </modules>
+  </component>
+</project>
