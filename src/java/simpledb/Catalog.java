@@ -17,14 +17,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Threadsafe
  */
 public class Catalog {
-    public HashMap<Integer,Table> map;
+    // Design decission: Use dictionaries instead of lists
+    public ConcurrentHashMap<Integer,Table> idToTable;
+    public ConcurrentHashMap<String,Integer> nameToId;
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
         // some code goes here
-        this.map = new HashMap<>();
+        this.idToTable = new ConcurrentHashMap<>();
+        this.nameToId = new ConcurrentHashMap<>();
     }
 
     /**
@@ -36,14 +39,18 @@ public class Catalog {
      * conflict exists, use the last table to be added as the table for a given name.
      * @param pkeyField the name of the primary key field
      */
-    // (!) The conflicts thing is missing
-    // (?) if DBFile is an implementation, is it ok to put it here as a parameter?
+    // (?) Is the conflict thing ressolved by the dictionary rule for duplicate keys?
+    // (?) if DBFile is an implementation, is it ok to put it here as a parameter? (Creo que simplemente está diciendo
+    // que lo que recibe es cualquier implementacion de DBFile - Ver que ninguna implementacion ha sido desarrollada
+    // antes de que esta parte del código deba estar lista)
+    // (?) Why storing a whole DBFile in the catalog?
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
         if (name==null) throw new IllegalArgumentException("name cannot be null");
-        int id = file.getId(); // (?) Doesnt have this method code?
-        Table table= new Table(file,name,pkeyField); // (?) Do we really store a whole file here?
-        map.put(id,table);
+        int id = file.getId();
+        Table table= new Table(file,name,pkeyField);
+        idToTable.put(id,table);
+        nameToId.put(name,id);
     }
 
     public void addTable(DbFile file, String name) {
@@ -67,7 +74,8 @@ public class Catalog {
      */
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+        if (!nameToId.containsKey(name)) throw new NoSuchElementException("There is no Table with such name");
+        return nameToId.get(name);
     }
 
     /**
@@ -78,7 +86,10 @@ public class Catalog {
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        // Another useful structure could be to retreive the table and throw the exception if it is null
+        if (!idToTable.containsKey(tableid)) throw new NoSuchElementException("There is no Table with such id");
+        Table table = idToTable.get(tableid);
+        return table.file.getTupleDesc();
     }
 
     /**
@@ -89,27 +100,32 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        if (!idToTable.containsKey(tableid)) throw new NoSuchElementException("There is no Table with such id");
+        Table table = idToTable.get(tableid);
+        return table.file; // (?) Is the field file of file missing here?
     }
 
     public String getPrimaryKey(int tableid) {
         // some code goes here
-        return null;
+        return idToTable.get(tableid).pkeyField;
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+        return idToTable.keySet().iterator();
     }
 
     public String getTableName(int id) {
         // some code goes here
-        return null;
+        Table table = idToTable.get(id);
+        return table.name;
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
+        idToTable.clear();
+        nameToId.clear();
     }
     
     /**

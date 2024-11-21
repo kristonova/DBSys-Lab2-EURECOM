@@ -14,6 +14,8 @@ import java.util.*;
  * @author Sam Madden
  */
 public class HeapFile implements DbFile {
+    public File file;
+    public TupleDesc td;
 
     /**
      * Constructs a heap file backed by the specified file.
@@ -24,6 +26,8 @@ public class HeapFile implements DbFile {
      */
     public HeapFile(File f, TupleDesc td) {
         // some code goes here
+        this.file=f;
+        this.td=td;
     }
 
     /**
