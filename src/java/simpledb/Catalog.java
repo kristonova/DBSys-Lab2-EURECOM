@@ -102,7 +102,7 @@ public class Catalog {
         // some code goes here
         if (!idToTable.containsKey(tableid)) throw new NoSuchElementException("There is no Table with such id");
         Table table = idToTable.get(tableid);
-        return table.file; // (?) Is the field file of file missing here?
+        return table.file; 
     }
 
     public String getPrimaryKey(int tableid) {

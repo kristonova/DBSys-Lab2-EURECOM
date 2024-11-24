@@ -10,6 +10,11 @@ import java.util.*;
 public class SeqScan implements OpIterator {
 
     private static final long serialVersionUID = 1L;
+    private DBFileIterator it;
+    private TransactionId tid;
+    private int tableid;
+    private String tableAlias;
+    private TupleDesc tupleDesc;
 
     /**
      * Creates a sequential scan over the specified table as a part of the
@@ -29,6 +34,9 @@ public class SeqScan implements OpIterator {
      */
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
         // some code goes here
+        this.tid = tid:
+        this.tableid = tableid;
+        this.tableAlias = tableAlias
     }
 
     /**
@@ -37,7 +45,7 @@ public class SeqScan implements OpIterator {
      *       be the actual name of the table in the catalog of the database
      * */
     public String getTableName() {
-        return null;
+        return Database.getCatalog().getTableName(tableid);
     }
 
     /**
@@ -46,7 +54,7 @@ public class SeqScan implements OpIterator {
     public String getAlias()
     {
         // some code goes here
-        return null;
+        return this.tableAlias;
     }
 
     /**
@@ -63,6 +71,8 @@ public class SeqScan implements OpIterator {
      */
     public void reset(int tableid, String tableAlias) {
         // some code goes here
+        this.tableid=tableid;
+        this.tableAlias=tableAlias
     }
 
     public SeqScan(TransactionId tid, int tableId) {
@@ -71,6 +81,21 @@ public class SeqScan implements OpIterator {
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
+        DBfile dbFile = Database.getCatalog().getDatabaseFile(tableid);
+        this.it = dbFile.iterator(tid)
+        this.it.open();
+
+        // Create the tupleDesc including the tableAlias
+        TupleDesc originalTd = dbFile.getTupleDesc();
+        String[] fieldNames = new String[originalTd.numFields()];
+        Type[] fieldTypes = new Type[originalTd.numFields()];
+
+        for (int i = 0; i < originalTd.numFields(); i++) {
+            fieldNames[i] = this.tableAlias + "." + originalTd.getFieldName(i);
+            fieldTypes[i] = originalTd.getFieldType(i);
+        }
+
+        this.tupleDesc = new TupleDesc(fieldTypes, fieldNames);
     }
 
     /**
@@ -85,26 +110,28 @@ public class SeqScan implements OpIterator {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return this.tupleDesc;
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        return false;
+        return this.it.hasNext();
     }
 
     public Tuple next() throws NoSuchElementException,
             TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        return this.it.next();
     }
 
     public void close() {
         // some code goes here
+        return this.it.close()
     }
 
     public void rewind() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        return this.it.rewind()
     }
 }

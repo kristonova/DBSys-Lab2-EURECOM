@@ -7,9 +7,9 @@ import java.util.*;
  * implement. If the iterator is not open, none of the methods should work,
  * and should throw an IllegalStateException.  In addition to any
  * resource allocation/deallocation, an open method should call any
- * child iterator open methods, and in a close method, an iterator
  * should call its children's close methods.
  */
+ * child iterator open methods, and in a close method, an iterator
 public interface OpIterator extends Serializable{
   /**
    * Opens the iterator. This must be called before any of the other methods.

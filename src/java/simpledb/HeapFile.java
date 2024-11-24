@@ -37,7 +37,7 @@ public class HeapFile implements DbFile {
      */
     public File getFile() {
         // some code goes here
-        return null;
+        return this.file;
     }
 
     /**
@@ -51,7 +51,8 @@ public class HeapFile implements DbFile {
      */
     public int getId() {
         // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        // throw new UnsupportedOperationException("implement this"); // (?) What to do with this exception?
+        return file.getAbsoluteFile().hashCode();
     }
 
     /**
@@ -61,13 +62,30 @@ public class HeapFile implements DbFile {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        // throw new UnsupportedOperationException("implement this"); // (?) What to do with this exception?
+        return this.td;
     }
 
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
         // some code goes here
-        return null;
+        int pageSize = BufferPool.getPageSize();
+        int pageNumber = pid.getPageNumber();
+        byte[] pageData = new byte[pageSize];
+        RandomAccessFile raf = null;
+
+        try {
+            raf = new RandomAccessFile(file, "r");
+            long offset = pageNumber * pageSize;
+            if (offset >= raf.length()) {
+                throw new IllegalArgumentException("Page doesnt exist in this file");
+            }
+            raf.seek(offset); e
+            raf.readFully(pageData);
+            return new HeapPage((HeapPageId) pid, pageData);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Error reading page", e);
+        }
     }
 
     // see DbFile.java for javadocs
@@ -81,7 +99,7 @@ public class HeapFile implements DbFile {
      */
     public int numPages() {
         // some code goes here
-        return 0;
+        return (int) (file.length()/BufferPool.getPageSize());
     }
 
     // see DbFile.java for javadocs
@@ -103,7 +121,63 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
         // some code goes here
-        return null;
+        return new DbFileIterator() {
+            private int currentPageIndex = -1; // Index of the current page being processed
+            private Iterator<Tuple> currentPageIterator = null; // Iterator for tuples on the current page
+
+            @Override
+            public void open() throws DbException, TransactionAbortedException {
+                currentPageIndex = 0; // Start with the first page
+                currentPageIterator = getPageIterator(currentPageIndex); // Load tuples from the first page
+            }
+
+            @Override
+            public boolean hasNext() throws DbException, TransactionAbortedException {
+                if (currentPageIterator == null) return false; // Iterator hasn't been opened
+
+                // Check if there are more tuples on the current page
+                if (currentPageIterator.hasNext()) {
+                    return true;
+                }
+
+                // If no more tuples on the current page, move to the next page if available
+                while (currentPageIndex < numPages() - 1) {
+                    currentPageIndex++;
+                    currentPageIterator = getPageIterator(currentPageIndex); // Load the next page's tuples
+                    if (currentPageIterator.hasNext()) {
+                        return true; // Found tuples on the next page
+                    }
+                }
+                return false; // No more tuples in the file
+            }
+
+            @Override
+            public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
+                if (currentPageIterator == null || !currentPageIterator.hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                return currentPageIterator.next(); // Return the next tuple
+            }
+
+            @Override
+            public void rewind() throws DbException, TransactionAbortedException {
+                close(); // Reset the iterator
+                open();  // Reopen to start from the beginning
+            }
+
+            @Override
+            public void close() {
+                currentPageIndex = -1; // Reset the page index
+                currentPageIterator = null; // Clear the current page iterator
+            }
+
+            // Helper method to get an iterator for a specific page
+            private Iterator<Tuple> getPageIterator(int pageIndex) throws DbException, TransactionAbortedException {
+                PageId pid = new HeapPageId(getId(), pageIndex); // Create a PageId for the page
+                HeapPage page = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_ONLY);
+                return page.iterator(); // Return the iterator for tuples on the page
+            }
+        };
     }
 
 }
